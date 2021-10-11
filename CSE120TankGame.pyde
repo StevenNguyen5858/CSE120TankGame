@@ -19,7 +19,7 @@ rhombusSmall = None
 
 # Global PGraphics
 main = None
-backDrop = None
+playG = None
 boxGrid = None
 
 # Global tanks
@@ -94,17 +94,29 @@ def setup():
     main.line(0,int(sH*.75),sW,int(sH*.75))
     main.endDraw()
     
-    global backDrop
-    backDrop = createGraphics(sW,sH)
-    backDrop.beginDraw()
-    backDrop.background(192, 64, 0)
-    backDrop.image(boxGrid, 0, 0)
-    backDrop.fill(0)
-    backDrop.stroke(0)
-    backDrop.rect(0,int(sH*.75),sW,sH)
-    backDrop.stroke(255)
-    backDrop.line(0,int(sH*.75),sW,int(sH*.75))
-    backDrop.endDraw()
+    global playG
+    playG = createGraphics(sW,sH)
+    playG.beginDraw()
+    playG.background(192, 64, 0)
+    playG.image(boxGrid, 0, 0)
+    playG.fill(0)
+    playG.stroke(0)
+    playG.rect(0,int(sH*.75),sW,sH)
+    playG.stroke(255)
+    playG.line(0,int(sH*.75),sW,int(sH*.75))
+    # Draw left player bar
+    playG.fill(0,180)
+    playG.quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
+    playG.noFill()
+    playG.line(6*s,.5*s,6*s,2.5*s)
+    playG.line(6.5*s,2.5*s,8.5*s,.5*s)
+    # Draw right player bar
+    playG.fill(0,180)
+    playG.quad(21.5*s, 2.5*s, 21.5*s, .5*s, 15*s, .5*s, 13*s, 2.5*s)
+    playG.noFill()
+    playG.line(15.5*s, .5*s, 13.5*s, 2.5*s)
+    playG.line(16*s, .5*s, 16*s, 2.5*s)
+    playG.endDraw()
     
     setupVariables()
        
@@ -123,7 +135,7 @@ def setupVariables():
     global tank4
     global player2Tanks
     tank3 = tank(s*20, 23*s+.46*s, s, .54*s, True, False, 0, left, "T3", 101, 102)
-    tank4 = tank(s*18, 23*s+.46*s, s, .54*s, True, False, 0, left, "T3", 101, 102)
+    tank4 = tank(s*18, 23*s+.46*s, s, .54*s, True, False, 0, left, "T4", 101, 102)
     tank3.isTurn = True
     player2Tanks = [tank3, tank4]
     
@@ -148,7 +160,7 @@ def setupVariables():
     # Pages
     global playP
     global mainP
-    playP = page(playScreenButtons, "playScreen", backDrop)
+    playP = page(playScreenButtons, "playScreen", playG)
     mainP = page(mainScreenButtons, "mainScreen", main)
     mainP.drawOnce = True
     global pages
@@ -163,38 +175,28 @@ def functionPlay():
 def functionFire():
     textSize(100)
     player1.tankHit(1)
-    swapTurns()
+    handleTurns()
     print("Firing projectile") 
 
 # Misc Functions
-def swapTurns():
+def handleTurns():
     global playerTurnIndex
-    p= players[playerTurnIndex]
+    p = players[playerTurnIndex]
     if p.tankTurnIndex<len(p.tanks)-1:
         p.tankTurnIndex = p.tankTurnIndex + 1
+        p.activeTank = p.tanks[p.tankTurnIndex].tankName
     else:
         p.tankTurnIndex = 0
+        p.activeTank = p.tanks[p.tankTurnIndex].tankName
         if playerTurnIndex<len(players)-1:
             playerTurnIndex = playerTurnIndex + 1
         else:
             playerTurnIndex = 0
+       
             
     
-    
 # Shapes functions:
-def playerBar(side):
-    strokeWeight(1)
-    fill(0,180)
-    if side == "left":
-        quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
-        noFill()
-        line(6*s,.5*s,6*s,2.5*s)
-        line(6.5*s,2.5*s,8.5*s,.5*s)
-    else:
-        quad(21.5*s, 2.5*s, 21.5*s, .5*s, 15*s, .5*s, 13*s, 2.5*s)
-        noFill()
-        line(15.5*s, .5*s, 13.5*s, 2.5*s)
-        line(16*s, .5*s, 16*s, 2.5*s)
+
     
 # Classes... All of them:
 class entity(object):
@@ -264,14 +266,13 @@ class player(object):
         line(x1,y1,x1+x2,y1-y2)
         strokeWeight(1)
                 
-    def tankHit(self,tankNum):
+    def tankHit(self, tankNum):
         self.tanks[tankNum-1].health = self.tanks[tankNum-1].health - 1
         self.totalHealth = 0
         for t in self.tanks:
             self.totalHealth = self.totalHealth + t.health
             
     def displayPlayerData(self):
-        playerBar(self.side)
         textSize(1.5*s*.740)
         str = self.playerName
         fill(255)
@@ -293,8 +294,6 @@ class player(object):
                 line(indexH, s, indexH-.5*s, s)
                 indexH = indexH - s
         
-    
-    
     
 class button(object):
     isSelected = False
@@ -341,11 +340,9 @@ class button(object):
             textSize(self.tSize)
             text(self.buttonDetail, self.textX, self.textY)     
 
-       
-    
     def buttonFunction(self): 
         self.buttonF()
-        
+            
     def hitCheck(self):
         if (self.x < mouseX < self.x+self.w) and (self.y < mouseY < self.y+self.h):
             self.buttonFunction()
@@ -375,11 +372,6 @@ def activatePage(p1):
             p.isActive = False
     p1.drawOnce = True
     
-    
-    
-    
-    
-# Globals:
 
 def draw():
     for p in pages: 
@@ -396,7 +388,6 @@ def draw():
                 t.drawEntity()
             players[playerTurnIndex].drawFiringLine()
                 
-    
      
 def mousePressed():
     for p in pages:
