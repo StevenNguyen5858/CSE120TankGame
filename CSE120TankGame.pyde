@@ -1,3 +1,4 @@
+# Group_1------------------------------------------------------------------
 # Setup Variables
 scale_ = .8
 sW = 0
@@ -12,6 +13,8 @@ grey3 = 120
 
 # Saved fonts
 font1 = None
+font1Bold = None
+chatText = None
 
 # Custom shapes
 rhombusBig = None
@@ -41,6 +44,8 @@ players = None
 fireB = None
 playScreenButtons = None
 playB = None
+optionsB = None
+exitB = None
 mainScreenButtons = None
 
 # Global pages
@@ -50,21 +55,27 @@ pages = None
 
 # Misc
 playerTurnIndex = 0
+
+# Group_2------------------------------------------------------------------
 def settings():
     global sW
     global sH
     global s
     # sW = int((displayHeight*scale_)/32*0.7)*32
     # sH = int((displayHeight*scale_)/32)*32  
-    sW = int((2160*scale_)/32*0.7)*32
-    sH = int((2160*scale_)/32)*32
+    sW = int((3840*scale_)/32)*32
+    sH = int((3840*scale_)/32*.5625)*32
     size(sW, sH)
     s = int(sH/32)
-
     
+
 def setup():
     global font1
+    global font1Bold
+    global chatText
     font1 = createFont("Font1.otf", 100)
+    font1Bold = createFont("Font1Bold.otf", 100)
+    chatText = createFont("ChatText.otf", 100)
     
     frameRate(60)
     stroke(255)
@@ -74,7 +85,7 @@ def setup():
     global boxGrid
     boxGrid = createGraphics(sW,sH)
     boxGrid.beginDraw()
-    for x in range(32):
+    for x in range(57):
         for y in range(32):
             boxGrid.noFill();
             boxGrid.stroke(0);
@@ -88,10 +99,39 @@ def setup():
     main.background(192, 64, 0)
     main.image(boxGrid, 0, 0)
     main.fill(0)
-    main.stroke(0)
+    main.textFont(font1Bold)
+    main.textSize(3*s*.740)
+    main.text("The Tank Game", 4*s, 6.8*s)
+    
+    main.stroke(255)
+    main.fill(0,120)
+    main.rect(39*s,3*s,18*s,17*s)
+    main.noFill()
+    main.rect(39*s,5*s,18*s,14*s)
+    main.fill(255)
+    main.textFont(font1)
+    main.textSize(2*s*.740)
+    main.text("Player queue", 39.5*s, 4.5*s)
+    main.textFont(chatText)
+    main.textSize(1.3*s*.740)
+    main.text("Type here :   ",39.5*s,19.8*s)
+    # Draw left player bar
+    #main.stroke(255)
+    #main.fill(0,180)
+    #main.quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
+    #main.noFill()
+    #main.line(6*s,.5*s,6*s,2.5*s)
+    #main.line(6.5*s,2.5*s,8.5*s,.5*s)
+    
+    
+    main.noStroke()
+    main.fill(180,100)
     main.rect(0,int(sH*.75),sW,sH)
     main.stroke(255)
-    main.line(0,int(sH*.75),sW,int(sH*.75))
+    main.fill(0)
+    main.quad(0,sH*.75,34*s,sH*.75,30*s,sH,0,sH)
+    main.quad(57*s,sH*.75,35*s,sH*.75,31*s,sH,sW,sH)
+    #
     main.endDraw()
     
     global playG
@@ -104,12 +144,7 @@ def setup():
     playG.rect(0,int(sH*.75),sW,sH)
     playG.stroke(255)
     playG.line(0,int(sH*.75),sW,int(sH*.75))
-    # Draw left player bar
-    playG.fill(0,180)
-    playG.quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
-    playG.noFill()
-    playG.line(6*s,.5*s,6*s,2.5*s)
-    playG.line(6.5*s,2.5*s,8.5*s,.5*s)
+    
     # Draw right player bar
     playG.fill(0,180)
     playG.quad(21.5*s, 2.5*s, 21.5*s, .5*s, 15*s, .5*s, 13*s, 2.5*s)
@@ -126,16 +161,16 @@ def setupVariables():
     global tank1
     global tank2
     global player1Tanks
-    tank1 = tank(s, 23*s+.46*s, s, .54*s, True, False, 0, left, "T1", 101, 102)
-    tank2 = tank(3*s, 23*s+.46*s, s, .54*s, True, False, 0, left, "T2", 101, 102)
+    tank1 = tank(1.5*s, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T1", 101, 102)
+    tank2 = tank(3.5*s, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T2", 101, 102)
     tank1.isTurn = True
     player1Tanks = [tank1, tank2]
     
     global tank3
     global tank4
     global player2Tanks
-    tank3 = tank(s*20, 23*s+.46*s, s, .54*s, True, False, 0, left, "T3", 101, 102)
-    tank4 = tank(s*18, 23*s+.46*s, s, .54*s, True, False, 0, left, "T4", 101, 102)
+    tank3 = tank(s*20.5, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T3", 101, 102)
+    tank4 = tank(s*18.5, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T4", 101, 102)
     tank3.isTurn = True
     player2Tanks = [tank3, tank4]
     
@@ -153,9 +188,13 @@ def setupVariables():
     fireB = button(192,255, "fire.b", s, 29*s, 5*s, 2*s, functionFire, "Fire!!")
     playScreenButtons = [fireB]
     global playB
+    global optionsB
+    global exitB
     global mainScreenButtons
-    playB = button(0, 255, "play.b", 7*s, 14*s, 8*s, 2.5*s, functionPlay, "Begin")
-    mainScreenButtons = [playB]
+    playB = button(0, 255, "play.b", 5*s, 10*s, 6*s, 2*s, functionPlay, "Begin")
+    optionsB = button(0, 255, "options.b", 5*s, 13*s, 8*s, 2*s, functionPlay, "Options")
+    exitB = button(0, 255, "exit.b", 5*s, 16*s, 5*s, 2*s, functionPlay, "Exit")
+    mainScreenButtons = [playB, optionsB, exitB]
     
     # Pages
     global playP
@@ -166,7 +205,7 @@ def setupVariables():
     global pages
     pages = [mainP, playP]
     
-    
+# Group_3------------------------------------------------------------------
 # Button functions to be passed as button arguments/members
 def functionPlay():
     activatePage(playP)
@@ -178,6 +217,7 @@ def functionFire():
     handleTurns()
     print("Firing projectile") 
 
+# Group_3.1-----------------------------------------------------------------
 # Misc Functions
 def handleTurns():
     global playerTurnIndex
@@ -193,11 +233,26 @@ def handleTurns():
         else:
             playerTurnIndex = 0
        
-            
+# ------------------------------------------------------------------Group_3.2
+# Detail Functions:
+def leftBarDetail():
+    pushMatrix()
+    # Draw left player bar
+    fill(0,180)
+    quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
+    noFill()
+    line(6*s,.5*s,6*s,2.5*s)
+    line(6.5*s,2.5*s,8.5*s,.5*s)
+    popMatrix()
     
-# Shapes functions:
+    
+def rightBarDetail():
+    pass
+
+
 
     
+# ------------------------------------------------------------------Group_4
 # Classes... All of them:
 class entity(object):
     vx = 0 
@@ -220,6 +275,26 @@ class entity(object):
     def drawEntity(self):
         fill(0)
         rect(self.x, self.y, self.w, self.h)
+        
+    def hasCollided(self, entity2):
+        # Collision X
+        if abs(self.x-entity2.x) <= (self.w+entity2.w):
+            return True
+        # Collision Y
+        if abs(self.y-entity2.y) <= (self.h+entity2.h):
+            return True
+        return False
+        
+
+class box_(entity):
+    def __init__(self, x, y, w, h, isTank, isProjectile, vox, voy, boxDetail):
+        entity.__init__(self, x, y, w, h, isTank, isProjectile, vox, voy)
+        self.boxDetail = boxDetail
+        
+    def drawEntity(self):
+        if boxDetail != "temp":
+            boxDetail
+            
             
 class tank(entity):
     def __init__(self, x, y, w, h, isTank, isProjectile, playerNum, side, tankName, vox, voy):
@@ -237,9 +312,11 @@ class tank(entity):
         stroke(255)
         strokeWeight(1)
         fill(0)
+        rectMode(RADIUS)
         rect(self.x, self.y, self.w, self.h)
+        rectMode(CORNER)
         
-    
+# Group_5------------------------------------------------------------------
 class player(object):
     aimX = 0
     aimY = 0
@@ -258,7 +335,7 @@ class player(object):
     def drawFiringLine(self):
         strokeWeight(3)
         t = self.tanks[self.tankTurnIndex]
-        x1 = t.x+t.w/2
+        x1 = t.x
         y1 = t.y - s*.5
         x2 = (t.power*s)*cos(t.fireAngle)
         y2 = (t.power*s)*sin(t.fireAngle)
@@ -294,7 +371,7 @@ class player(object):
                 line(indexH, s, indexH-.5*s, s)
                 indexH = indexH - s
         
-    
+# Group_6------------------------------------------------------------------
 class button(object):
     isSelected = False
     def __init__(self, co1or, strok3, name, x, y, w, h, buttonF, buttonDetail):
@@ -327,7 +404,7 @@ class button(object):
         stroke(self.strok3)
         rect(self.x-self.dT,self.y-self.dT,self.w+self.dT*2,self.h+self.dT*2)
         if self.co1or == 0:
-            fill(self.co1or)
+            fill(0, 120)
         else:
             # detail red
             fill(192,64,0)
@@ -372,7 +449,7 @@ def activatePage(p1):
             p.isActive = False
     p1.drawOnce = True
     
-
+# Group_7------------------------------------------------------------------
 def draw():
     for p in pages: 
         if p.drawOnce:
