@@ -26,6 +26,8 @@ playG = None
 optionsG = None
 boxGrid = None
 
+# ChatBoxes
+playerQueue = None
 
 # Global tanks
 left = "left"
@@ -69,8 +71,8 @@ def settings():
     global s
     # sW = int((displayHeight*scale_)/32*0.7)*32
     # sH = int((displayHeight*scale_)/32)*32  
-    sW = int((1920*scale_)/32)*32
-    sH = int((1920*scale_)/32*.5625)*32
+    sW = int((3840*scale_)/32)*32
+    sH = int((3840*scale_)/32*.5625)*32
     size(sW, sH)
     s = int(sH/32)
     
@@ -110,17 +112,19 @@ def setup():
     main.text("The Tank Game", 4*s, 6.8*s)
     
     main.stroke(255)
-    main.fill(0,120)
-    main.rect(39*s,3*s,18*s,17*s)
     main.noFill()
-    main.rect(39*s,5*s,18*s,14*s)
+    main.rect(39*s,3*s,18*s,17*s)
+    main.fill(0,120)
+    main.rect(39*s,3*s,18*s,2*s)
+    main.rect(39*s,19*s,18*s,1*s)
+    
     main.fill(255)
     main.textFont(font1)
     main.textSize(2*s*.740)
     main.text("Player queue", 39.5*s, 4.5*s)
     main.textFont(chatText)
     main.textSize(1.3*s*.740)
-    main.text("Type here :   ",39.5*s,19.8*s)
+    main.text("Type here :   ",39.5*s,(20*s)-((s-textAscent())/2)-s*.4)
     # Draw left player bar
     #main.stroke(255)
     #main.fill(0,180)
@@ -128,8 +132,7 @@ def setup():
     #main.noFill()
     #main.line(6*s,.5*s,6*s,2.5*s)
     #main.line(6.5*s,2.5*s,8.5*s,.5*s)
-    
-    
+    # Bottum black
     main.noStroke()
     main.fill(180,100)
     main.rect(0,int(sH*.75),sW,sH)
@@ -169,11 +172,15 @@ def setup():
     optionsG.rect(0,0,sW,sH)
     optionsG.endDraw()
 
-    
     setupVariables()
        
 
 def setupVariables():
+    testChat = ["[Game] Hello Player1!", "[Game] Use the text box below to enter messages."]
+    # Chat boxes
+    global playerQueue
+    playerQueue = chatBox(39*s, 5*s, 18*s, 14, True, testChat, 0)
+    
     # Tanks
     global tank1
     global tank2
@@ -222,9 +229,9 @@ def setupVariables():
     global playP
     global mainP
     global optionsP
-    playP = page(playScreenButtons, "playScreen", playG)
-    mainP = page(mainScreenButtons, "mainScreen", main)
-    optionsP = page(optionScreenButtons, "optionScreen", optionsG)
+    playP = page(playScreenButtons, "playScreen", playG, "temp")
+    mainP = page(mainScreenButtons, "mainScreen", main, playerQueue.drawChatBox)
+    optionsP = page(optionScreenButtons, "optionScreen", optionsG, "temp")
     mainP.drawOnce = True
     global pages
     pages = [mainP, playP, optionsP]
@@ -235,23 +242,20 @@ def functionPlay():
     activatePage(playP)
     print("Activiating play page")
     
+def functionOptions():
+    activatePage(optionsP)
+    print("Activating options page")
+    
+def functionExit():
+    exit()
+    print("Exit program executed")
+    
 def functionFire():
     textSize(100)
     player1.tankHit(1)
     handleTurns()
     print("Firing projectile") 
     
-    
-def functionOptions():
-    activatePage(optionsP)
-    print("Activating options page")
-    
-    
-def functionExit():
-    exit()
-    print("Exit program executed")
-    
-
 def functionReturn():
     activatePage(mainP)
     print("Returning to main")
@@ -287,9 +291,6 @@ def leftBarDetail():
     
 def rightBarDetail():
     pass
-
-
-
     
 # ------------------------------------------------------------------Group_4
 # Classes... All of them:
@@ -355,7 +356,36 @@ class tank(entity):
         rect(self.x, self.y, self.w, self.h)
         rectMode(CORNER)
         
+        
 # Group_5------------------------------------------------------------------
+class chatBox(object):
+    def __init__(self, x, y, w, lines, fromTop, strs, displayIndex):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.lines = lines
+        self.fromTop = fromTop
+        self.strs = strs
+        self.displayIndex = displayIndex
+        self.h = lines*s
+    
+    def drawChatBox(self):
+        self.h = self.lines*s
+        stroke(255)
+        fill(0,120)
+        if self.fromTop:
+            rect(self.x, self.y, self.w, self.h)
+            textFont(chatText)
+            textSize(1.3*s*.740)
+            fill(255)
+            lenStr = len(self.strs)
+            for i in range(min(lenStr,self.lines)):
+                print(lenStr-i)
+                text(self.strs[lenStr-i-1], self.x+.5*s, (self.y+self.h-i*s)-((s*1-textAscent())/2)-s*.2)
+        else:
+            rect(self.x, self.y+h, self.w, -self.h)
+            
+# ------------------------------------------------------------------Group_6
 class player(object):
     aimX = 0
     aimY = 0
@@ -410,7 +440,7 @@ class player(object):
                 line(indexH, s, indexH-.5*s, s)
                 indexH = indexH - s
         
-# Group_6------------------------------------------------------------------
+# ------------------------------------------------------------------Group_7
 class button(object):
     isSelected = False
     def __init__(self, co1or, strok3, name, x, y, w, h, buttonF, buttonDetail):
@@ -453,6 +483,7 @@ class button(object):
                 fill(255)
             else:
                 fill(0)
+            textFont(font1)
             textSize(self.tSize)
             text(self.buttonDetail, self.textX, self.textY)     
 
@@ -470,14 +501,17 @@ class button(object):
 class page(object):
     isActive = False
     drawOnce = False
-    def __init__(self, pageButtons, pageTag, pageGraphics):
+    def __init__(self, pageButtons, pageTag, pageGraphics, pageDetails):
         self.pageButtons = pageButtons
         self.pageTag = pageTag
-        self.pageGraphics  = pageGraphics
+        self.pageGraphics = pageGraphics
+        self.pageDetails = pageDetails
     
     def drawPage(self):
         if self.pageGraphics != "temp":
              image(self.pageGraphics, 0, 0)
+        if self.pageDetails != "temp":
+            self.pageDetails()
         for b in self.pageButtons: b.drawButton()
     
 
@@ -487,8 +521,10 @@ def activatePage(p1):
         if p1.pageTag != p.pageTag:
             p.isActive = False
     p1.drawOnce = True
+
+
     
-# Group_7------------------------------------------------------------------
+# ------------------------------------------------------------------Group_8
 def draw():
     for p in pages: 
         if p.drawOnce:
