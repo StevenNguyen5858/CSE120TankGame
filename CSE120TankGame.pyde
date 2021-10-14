@@ -23,7 +23,9 @@ rhombusSmall = None
 # Global PGraphics
 main = None
 playG = None
+optionsG = None
 boxGrid = None
+
 
 # Global tanks
 left = "left"
@@ -47,11 +49,15 @@ playB = None
 optionsB = None
 exitB = None
 mainScreenButtons = None
+returnB = None
+optionScreenButtons = None
 
 # Global pages
 mainP = None
 playP = None
+optionsP = None
 pages = None
+
 
 # Misc
 playerTurnIndex = 0
@@ -63,8 +69,8 @@ def settings():
     global s
     # sW = int((displayHeight*scale_)/32*0.7)*32
     # sH = int((displayHeight*scale_)/32)*32  
-    sW = int((3840*scale_)/32)*32
-    sH = int((3840*scale_)/32*.5625)*32
+    sW = int((1920*scale_)/32)*32
+    sH = int((1920*scale_)/32*.5625)*32
     size(sW, sH)
     s = int(sH/32)
     
@@ -153,6 +159,17 @@ def setup():
     playG.line(16*s, .5*s, 16*s, 2.5*s)
     playG.endDraw()
     
+    
+    global optionsG
+    optionsG = createGraphics(sW,sH)
+    optionsG.beginDraw()
+    optionsG.background(192, 64, 0)
+    optionsG.image(boxGrid, 0, 0)
+    optionsG.fill(0,100)
+    optionsG.rect(0,0,sW,sH)
+    optionsG.endDraw()
+
+    
     setupVariables()
        
 
@@ -192,18 +209,25 @@ def setupVariables():
     global exitB
     global mainScreenButtons
     playB = button(0, 255, "play.b", 5*s, 10*s, 6*s, 2*s, functionPlay, "Begin")
-    optionsB = button(0, 255, "options.b", 5*s, 13*s, 8*s, 2*s, functionPlay, "Options")
-    exitB = button(0, 255, "exit.b", 5*s, 16*s, 5*s, 2*s, functionPlay, "Exit")
+    optionsB = button(0, 255, "options.b", 5*s, 13*s, 8*s, 2*s, functionOptions, "Options")
+    exitB = button(0, 255, "exit.b", 5*s, 16*s, 5*s, 2*s, functionExit, "Exit")
     mainScreenButtons = [playB, optionsB, exitB]
+    global optionScreenButtons
+    returnB = button(0, 255, "return.b", 2*s, 25*s, 5*s, 2*s, functionReturn, "Back")
+    exitB = button(0, 255, "exit.b", 2*s, 25*s, 5*s, 2*s, functionExit, "Exit")
+    optionScreenButtons = [returnB]
+
     
     # Pages
     global playP
     global mainP
+    global optionsP
     playP = page(playScreenButtons, "playScreen", playG)
     mainP = page(mainScreenButtons, "mainScreen", main)
+    optionsP = page(optionScreenButtons, "optionScreen", optionsG)
     mainP.drawOnce = True
     global pages
-    pages = [mainP, playP]
+    pages = [mainP, playP, optionsP]
     
 # Group_3------------------------------------------------------------------
 # Button functions to be passed as button arguments/members
@@ -216,6 +240,21 @@ def functionFire():
     player1.tankHit(1)
     handleTurns()
     print("Firing projectile") 
+    
+    
+def functionOptions():
+    activatePage(optionsP)
+    print("Activating options page")
+    
+    
+def functionExit():
+    exit()
+    print("Exit program executed")
+    
+
+def functionReturn():
+    activatePage(mainP)
+    print("Returning to main")
 
 # Group_3.1-----------------------------------------------------------------
 # Misc Functions
