@@ -1,5 +1,5 @@
 # Group_1------------------------------------------------------------------
-# Setup Variables
+# Setup Variablest
 scale_ = .8
 sW = 0
 sH = 0
@@ -27,6 +27,7 @@ optionsG = None
 boxGrid = None
 
 # ChatBoxes
+currentKey = None
 playerQueue = None
 
 # Global tanks
@@ -53,6 +54,10 @@ exitB = None
 mainScreenButtons = None
 returnB = None
 optionScreenButtons = None
+
+# Global textButtons
+chatBT = None
+activeTBs = None
 
 # Global pages
 mainP = None
@@ -124,7 +129,7 @@ def setup():
     main.text("Player queue", 39.5*s, 4.5*s)
     main.textFont(chatText)
     main.textSize(1.3*s*.740)
-    main.text("Type here :   ",39.5*s,(20*s)-((s-textAscent())/2)-s*.4)
+    main.text("Type here",39.5*s,(20*s)-((s-textAscent())/2)-s*.4)
     # Draw left player bar
     #main.stroke(255)
     #main.fill(0,180)
@@ -207,6 +212,7 @@ def setupVariables():
     players = [player1,player2]
     
     # Buttons
+    global textButtons
     global fireB
     global playScreenButtons
     fireB = button(192,255, "fire.b", s, 29*s, 5*s, 2*s, functionFire, "Fire!!")
@@ -214,21 +220,26 @@ def setupVariables():
     global playB
     global optionsB
     global exitB
+    global chatBT
     global mainScreenButtons
     playB = button(0, 255, "play.b", 5*s, 10*s, 6*s, 2*s, functionPlay, "Begin")
     optionsB = button(0, 255, "options.b", 5*s, 13*s, 8*s, 2*s, functionOptions, "Options")
     exitB = button(0, 255, "exit.b", 5*s, 16*s, 5*s, 2*s, functionExit, "Exit")
-    mainScreenButtons = [playB, optionsB, exitB]
+    chatBT = textButton(0, 255, "chat.tb", 43*s, 19*s, 14*s, 1*s, "TB", "tb.", playerQueue, "mainScreen")
+    mainScreenButtons = [playB, optionsB, exitB, chatBT]
     global optionScreenButtons
     returnB = button(0, 255, "return.b", 2*s, 25*s, 5*s, 2*s, functionReturn, "Back")
     exitB = button(0, 255, "exit.b", 2*s, 25*s, 5*s, 2*s, functionExit, "Exit")
     optionScreenButtons = [returnB]
-
+    textButtons = [chatBT]
+    global activeTBs
+    activeTBs = set()
     
     # Pages
     global playP
     global mainP
     global optionsP
+    
     playP = page(playScreenButtons, "playScreen", playG, "temp")
     mainP = page(mainScreenButtons, "mainScreen", main, playerQueue.drawChatBox)
     optionsP = page(optionScreenButtons, "optionScreen", optionsG, "temp")
@@ -259,6 +270,8 @@ def functionFire():
 def functionReturn():
     activatePage(mainP)
     print("Returning to main")
+    
+        
 
 # Group_3.1-----------------------------------------------------------------
 # Misc Functions
@@ -380,7 +393,6 @@ class chatBox(object):
             fill(255)
             lenStr = len(self.strs)
             for i in range(min(lenStr,self.lines)):
-                print(lenStr-i)
                 text(self.strs[lenStr-i-1], self.x+.5*s, (self.y+self.h-i*s)-((s*1-textAscent())/2)-s*.2)
         else:
             rect(self.x, self.y+h, self.w, -self.h)
@@ -442,7 +454,6 @@ class player(object):
         
 # ------------------------------------------------------------------Group_7
 class button(object):
-    isSelected = False
     def __init__(self, co1or, strok3, name, x, y, w, h, buttonF, buttonDetail):
         self.co1or = co1or
         self.strok3 = strok3
@@ -465,30 +476,35 @@ class button(object):
             self.dT = s*.5
     
     def drawButton(self):
-        if self.co1or == 0:
-            fill(self.co1or,100)
-        else:
-            # detail red
-            fill(192,64,0, 100)
-        stroke(self.strok3)
-        rect(self.x-self.dT,self.y-self.dT,self.w+self.dT*2,self.h+self.dT*2)
+        if self.buttonDetail != "None":
+            if self.co1or == 0:
+                fill(self.co1or,100)
+            else:
+                # detail red
+                fill(192,64,0, 100)
+            stroke(self.strok3)
+            rect(self.x-self.dT,self.y-self.dT,self.w+self.dT*2,self.h+self.dT*2)
+            
         if self.co1or == 0:
             fill(0, 120)
         else:
             # detail red
             fill(192,64,0)
         rect(self.x, self.y, self.w, self.h)
+        # Prep for text
+        if self.co1or == 0:
+            fill(255)
+        else:
+            fill(0)
         if type(self.buttonDetail) == str:
-            if self.co1or == 0:
-                fill(255)
-            else:
-                fill(0)
             textFont(font1)
             textSize(self.tSize)
             text(self.buttonDetail, self.textX, self.textY)     
 
     def buttonFunction(self): 
-        self.buttonF()
+        saveFrame()
+        if self.buttonF != "temp":
+            self.buttonF()
             
     def hitCheck(self):
         if (self.x < mouseX < self.x+self.w) and (self.y < mouseY < self.y+self.h):
@@ -497,7 +513,39 @@ class button(object):
         else:
             return False
             
-
+            
+class textButton(button):
+    def __init__(self, co1or, strok3, name, x, y, w, h, buttonF, buttonDetail, chatBox, pageName):
+        button.__init__(self, co1or, strok3, name, x, y, w, h, buttonF, buttonDetail)
+        self.isSelected = False
+        self.chatBox = chatBox
+        self.pageName = pageName
+        self.textX = self.x+.5*s
+        self.tSize = 1.3*s*.740
+        
+    def drawButton(self):
+        if self.isSelected:
+            fill(0)
+        else:
+            noFill()
+        rect(self.x, self.y, self.w, self.h)
+        fill(255)
+        textFont(chatText)
+        textSize(self.tSize)
+        text(self.buttonDetail[3:], self.textX, self.textY)  
+        
+    def drawPage(self):
+        for p in pages:
+            if p.pageTag == self.pageName:
+                p.drawPage()
+        
+    def buttonFunction(self):
+        self.isSelected = True
+        global activeTBs
+        activeTBs.add(self)
+        self.drawButton()
+    
+            
 class page(object):
     isActive = False
     drawOnce = False
@@ -521,9 +569,12 @@ def activatePage(p1):
         if p1.pageTag != p.pageTag:
             p.isActive = False
     p1.drawOnce = True
-
-
     
+def getActivePage():
+    for p in pages:
+        if p.isActive:
+            return p
+        
 # ------------------------------------------------------------------Group_8
 def draw():
     for p in pages: 
@@ -542,6 +593,7 @@ def draw():
                 
      
 def mousePressed():
+    print("X: ", mouseX/s, "Y: ", mouseY/s)
     for p in pages:
         if p.isActive:
             for b in p.pageButtons:
@@ -550,7 +602,30 @@ def mousePressed():
 def mouseDragged():
     pass
     
-
+def keyPressed():
+    if key == ENTER and len(activeTBs) == 0:
+        for TB in textButtons:
+            print("test")
+            if TB.pageName == getActivePage().pageTag:
+                print("test2")
+                TB.buttonFunction()
+        return 0
+    for i in activeTBs:
+        if key == ENTER:
+            i.chatBox.strs.append(i.buttonDetail[3:])
+            i.buttonDetail = "tb."
+            i.isSelected = False
+            activeTBs.remove(i)
+            i.drawPage()
+        elif key == CODED:
+            pass
+        else:
+            i.buttonDetail = i.buttonDetail + str(key)
+        
+        i.drawButton()
+    
+        
+        
 # Functions... All of them:
 
     
