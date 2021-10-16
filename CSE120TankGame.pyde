@@ -617,9 +617,6 @@ def keyPressed():
             i.isSelected = False
             activeTBs.remove(i)
             i.drawPage()
-        if key == BACKSPACE:
-            if len(i.buttonDetail) > 3:
-                i.buttonDetail = i.buttonDetail[0:-1]
         elif key == CODED:
             pass
         else:
