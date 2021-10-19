@@ -37,13 +37,21 @@ tank1 = None
 tank2 = None
 tank3 = None
 tank4 = None
-player1Tanks = None
-player2Tanks = None
+clientTanks = None
+tankTurnIndex = 0
 
 # Players
 player1 = None
 player2 = None
+player3 = None
+player4 = None
 players = None
+
+# Teams
+team1 = None
+team2 = None
+team3 = None
+teams = None
 
 # Global buttons
 fireB = None
@@ -57,6 +65,8 @@ optionScreenButtons = None
 
 # Global textButtons
 chatBT = None
+leftScrollBT = None
+rightScrollBT = None
 activeTBs = None
 
 # Global pages
@@ -64,7 +74,6 @@ mainP = None
 playP = None
 optionsP = None
 pages = None
-
 
 # Misc
 playerTurnIndex = 0
@@ -118,25 +127,23 @@ def setup():
     
     main.stroke(255)
     main.noFill()
+    main.rect(39.5*s,5.25*s,4.5*s,3.50*s)
+    main.rect(45.5*s,5.25*s,4.5*s,3.50*s)
+    main.rect(52*s,5.25*s,4.5*s,3.50*s)
     main.rect(39*s,3*s,18*s,17*s)
     main.fill(0,120)
     main.rect(39*s,3*s,18*s,2*s)
+    main.rect(39*s,5*s,18*s,4*s)
     main.rect(39*s,19*s,18*s,1*s)
     
     main.fill(255)
+    main.line(51*s,5*s,51*s,9*s)
     main.textFont(font1)
     main.textSize(2*s*.740)
     main.text("Player queue", 39.5*s, 4.5*s)
     main.textFont(chatText)
     main.textSize(1.3*s*.740)
     main.text("Type here",39.5*s,(20*s)-((s-textAscent())/2)-s*.4)
-    # Draw left player bar
-    #main.stroke(255)
-    #main.fill(0,180)
-    #main.quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
-    #main.noFill()
-    #main.line(6*s,.5*s,6*s,2.5*s)
-    #main.line(6.5*s,2.5*s,8.5*s,.5*s)
     # Bottum black
     main.noStroke()
     main.fill(180,100)
@@ -145,7 +152,6 @@ def setup():
     main.fill(0)
     main.quad(0,sH*.75,34*s,sH*.75,30*s,sH,0,sH)
     main.quad(57*s,sH*.75,35*s,sH*.75,31*s,sH,sW,sH)
-    #
     main.endDraw()
     
     global playG
@@ -167,7 +173,6 @@ def setup():
     playG.line(16*s, .5*s, 16*s, 2.5*s)
     playG.endDraw()
     
-    
     global optionsG
     optionsG = createGraphics(sW,sH)
     optionsG.beginDraw()
@@ -184,32 +189,34 @@ def setupVariables():
     testChat = ["[Game] Hello Player1!", "[Game] Use the text box below to enter messages."]
     # Chat boxes
     global playerQueue
-    playerQueue = chatBox(39*s, 5*s, 18*s, 14, True, testChat, 0)
+    playerQueue = chatBox(39*s, 9*s, 18*s, 10, True, testChat, 0)
+    
+    # Players
+    global player1
+    global players
+    player1 = player("Player1",1,False)
+    players = [player1]
+    
+    # Teams
+    global team1
+    global team2
+    global team3
+    global teams
+    team1 = team("Team1", left, [])
+    team2 = team("Team2", right, [])
+    team3 = team("Team3", left, players)
     
     # Tanks
     global tank1
     global tank2
-    global player1Tanks
-    tank1 = tank(1.5*s, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T1", 101, 102)
-    tank2 = tank(3.5*s, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T2", 101, 102)
-    tank1.isTurn = True
-    player1Tanks = [tank1, tank2]
-    
     global tank3
     global tank4
-    global player2Tanks
-    tank3 = tank(s*20.5, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T3", 101, 102)
-    tank4 = tank(s*18.5, 23*s+.73*s, .5*s, .27*s, True, False, 0, left, "T4", 101, 102)
-    tank3.isTurn = True
-    player2Tanks = [tank3, tank4]
-    
-    # Players
-    global player1
-    global player2
-    global players
-    player1 = player("Player1", player1Tanks, True, left)
-    player2 = player("Player2", player2Tanks, False, right)
-    players = [player1,player2]
+    global clientTanks
+    tank1 = tank(1.5*s, 23*s+.73*s, .5*s, .27*s, 0, left, "T1", 101, 102)
+    tank2 = tank(3.5*s, 23*s+.73*s, .5*s, .27*s, 0, left, "T2", 101, 102)
+    tank3 = tank(s*20.5, 23*s+.73*s, .5*s, .27*s, 0, left, "T3", 101, 102)
+    tank4 = tank(s*18.5, 23*s+.73*s, .5*s, .27*s, 0, left, "T4", 101, 102)
+    clientTanks = [tank1, tank2, tank3, tank4]
     
     # Buttons
     global textButtons
@@ -220,13 +227,17 @@ def setupVariables():
     global playB
     global optionsB
     global exitB
+    global leftScrollBT
+    global rightScrollBT
     global chatBT
     global mainScreenButtons
     playB = button(0, 255, "play.b", 5*s, 10*s, 6*s, 2*s, functionPlay, "Begin")
     optionsB = button(0, 255, "options.b", 5*s, 13*s, 8*s, 2*s, functionOptions, "Options")
     exitB = button(0, 255, "exit.b", 5*s, 16*s, 5*s, 2*s, functionExit, "Exit")
+    leftScrollBT = button(0, 255, "left.b", 56*s, 9*s, 1*s, .75*s, "temp", "temp")
+    rightScrollBT = button(0, 255, "left.b", 56*s, 10*s, 1*s, .75*s, "temp", "temp")
     chatBT = textButton(0, 255, "chat.tb", 43*s, 19*s, 14*s, 1*s, "TB", "tb.", playerQueue, "mainScreen")
-    mainScreenButtons = [playB, optionsB, exitB, chatBT]
+    mainScreenButtons = [playB, optionsB, exitB, leftScrollBT, rightScrollBT, chatBT]
     global optionScreenButtons
     returnB = button(0, 255, "return.b", 2*s, 25*s, 5*s, 2*s, functionReturn, "Back")
     exitB = button(0, 255, "exit.b", 2*s, 25*s, 5*s, 2*s, functionExit, "Exit")
@@ -239,9 +250,8 @@ def setupVariables():
     global playP
     global mainP
     global optionsP
-    
     playP = page(playScreenButtons, "playScreen", playG, "temp")
-    mainP = page(mainScreenButtons, "mainScreen", main, playerQueue.drawChatBox)
+    mainP = page(mainScreenButtons, "mainScreen", main, detailMain)
     optionsP = page(optionScreenButtons, "optionScreen", optionsG, "temp")
     mainP.drawOnce = True
     global pages
@@ -250,9 +260,12 @@ def setupVariables():
 # Group_3------------------------------------------------------------------
 # Button functions to be passed as button arguments/members
 def functionPlay():
-    activatePage(playP)
-    print("Activiating play page")
-    
+    if players != None and len(players) > 0:
+        activatePage(playP)
+        print("Activiating play page")
+    else:
+        playerQueue.strs.append("[Game] Must have atleast 1 player ready to begin.")
+        mainP.drawPage()
 def functionOptions():
     activatePage(optionsP)
     print("Activating options page")
@@ -263,7 +276,6 @@ def functionExit():
     
 def functionFire():
     textSize(100)
-    player1.tankHit(1)
     handleTurns()
     print("Firing projectile") 
     
@@ -271,9 +283,7 @@ def functionReturn():
     activatePage(mainP)
     print("Returning to main")
     
-        
-
-# Group_3.1-----------------------------------------------------------------
+# -----------------------------------------------------------------Group_3.1
 # Misc Functions
 def handleTurns():
     global playerTurnIndex
@@ -290,7 +300,38 @@ def handleTurns():
             playerTurnIndex = 0
        
 # ------------------------------------------------------------------Group_3.2
+# commands
+def changeName(name):
+    pass
+    
+def joinServer():
+    pass
+    
+def swapWith(name):
+    pass
+
+# ------------------------------------------------------------------Group_3.3
 # Detail Functions:
+def detailMain():
+    displayQueueData()
+    playerQueue.drawChatBox()
+    
+def displayQueueData():
+    fill(255)
+    textFont(chatText)
+    textSize(1.3*s*.740)
+    text(team1.teamName, 39.75*s, 6.25*s-((s*1-textAscent())/2)-s*.2)
+    for i in range(len(team1.players)):
+        if team1.players[i] != None:
+            text("- "+team1.players[i].playerName, 39.75*s, 7.25*s+i*s-((s*1-textAscent())/2)-s*.2)
+    text(team2.teamName, 45.75*s, 6.25*s-((s*1-textAscent())/2)-s*.2)
+    for i in range(len(team2.players)):
+        if team2.players[i] != None:
+            text("- "+team2.players[i].playerName, 39.75*s, 7.25*s+i*s-((s*1-textAscent())/2)-s*.2)
+    for i in range(len(team3.players)):
+        if team3.players[i] != None:
+            text("- "+team3.players[i].playerName, 52.5*s, 6.25*s+i*s-((s*1-textAscent())/2)-s*.2)
+    
 def leftBarDetail():
     pushMatrix()
     # Draw left player bar
@@ -310,13 +351,11 @@ def rightBarDetail():
 class entity(object):
     vx = 0 
     vy = 0
-    def __init__(self, x, y, w, h, isTank, isProjectile, vox, voy):
+    def __init__(self, x, y, w, h, vox, voy):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
-        self.isTank = isTank
-        self.isProjectile = isProjectile
         self.vox = vox
         self.voy = voy
         self.vx = vox
@@ -340,8 +379,8 @@ class entity(object):
         
 
 class box_(entity):
-    def __init__(self, x, y, w, h, isTank, isProjectile, vox, voy, boxDetail):
-        entity.__init__(self, x, y, w, h, isTank, isProjectile, vox, voy)
+    def __init__(self, x, y, w, h, vox, voy, boxDetail):
+        entity.__init__(self, x, y, w, h, vox, voy)
         self.boxDetail = boxDetail
         
     def drawEntity(self):
@@ -350,8 +389,8 @@ class box_(entity):
             
             
 class tank(entity):
-    def __init__(self, x, y, w, h, isTank, isProjectile, playerNum, side, tankName, vox, voy):
-        entity.__init__(self, x, y, w, h, isTank, isProjectile, vox, voy)
+    def __init__(self, x, y, w, h, playerNum, side, tankName, vox, voy):
+        entity.__init__(self, x, y, w, h, vox, voy)
         self.playerNum = playerNum
         self.side = side
         self.tankName = tankName
@@ -382,6 +421,9 @@ class chatBox(object):
         self.displayIndex = displayIndex
         self.h = lines*s
     
+    def addStr(self, str1):
+        self.strs.append("["+player1.playerName+"] "+str1)
+    
     def drawChatBox(self):
         self.h = self.lines*s
         stroke(255)
@@ -401,21 +443,14 @@ class chatBox(object):
 class player(object):
     aimX = 0
     aimY = 0
-    isTurn = False
-    def __init__(self, playerName, tanks, isTurn, side):
+    def __init__(self, playerName, tankNums, isTurn):
         self.playerName = playerName
-        self.tanks = tanks
-        self.side = side
-        self.totalHealth = 0
-        for t in self.tanks:
-            self.totalHealth = self.totalHealth + t.health
+        self.tankNums = tankNums
         self.isTurn = isTurn
-        self.activeTank = tanks[0].tankName
-        self.tankTurnIndex = 0;
     
     def drawFiringLine(self):
         strokeWeight(3)
-        t = self.tanks[self.tankTurnIndex]
+        t = clientTanks[tankTurnIndex]
         x1 = t.x
         y1 = t.y - s*.5
         x2 = (t.power*s)*cos(t.fireAngle)
@@ -423,34 +458,14 @@ class player(object):
         fill(255)
         line(x1,y1,x1+x2,y1-y2)
         strokeWeight(1)
-                
-    def tankHit(self, tankNum):
-        self.tanks[tankNum-1].health = self.tanks[tankNum-1].health - 1
-        self.totalHealth = 0
-        for t in self.tanks:
-            self.totalHealth = self.totalHealth + t.health
-            
-    def displayPlayerData(self):
-        textSize(1.5*s*.740)
-        str = self.playerName
-        fill(255)
-        qs = .25*s
-        if self.side == left:
-            text(str, 1.*s, 1.65*s)
-            text(self.activeTank, 6.25*s, 1.65*s)
-            indexH = s
-            strokeWeight(10)
-            for h in range(self.totalHealth):
-                line(indexH, 2*s, indexH+.5*s, 2*s)
-                indexH = indexH + s
-        else:
-            text(str, 22*s-textWidth(str)-s, 2.2*s)
-            text(self.activeTank, 14.75*s, 2.2*s)
-            indexH = 21*s
-            strokeWeight(10)
-            for h in range(self.totalHealth):
-                line(indexH, s, indexH-.5*s, s)
-                indexH = indexH - s
+    
+        
+class team(object):
+    def __init__(self, teamName, side, players):
+        self.teamName = teamName
+        self.side = side
+        self.players = players
+        
         
 # ------------------------------------------------------------------Group_7
 class button(object):
@@ -476,7 +491,7 @@ class button(object):
             self.dT = s*.5
     
     def drawButton(self):
-        if self.buttonDetail != "None":
+        if self.buttonDetail != "temp":
             if self.co1or == 0:
                 fill(self.co1or,100)
             else:
@@ -484,25 +499,25 @@ class button(object):
                 fill(192,64,0, 100)
             stroke(self.strok3)
             rect(self.x-self.dT,self.y-self.dT,self.w+self.dT*2,self.h+self.dT*2)
-            
+        
         if self.co1or == 0:
             fill(0, 120)
         else:
             # detail red
             fill(192,64,0)
         rect(self.x, self.y, self.w, self.h)
-        # Prep for text
-        if self.co1or == 0:
-            fill(255)
-        else:
-            fill(0)
-        if type(self.buttonDetail) == str:
-            textFont(font1)
-            textSize(self.tSize)
-            text(self.buttonDetail, self.textX, self.textY)     
+        if self.buttonDetail != "temp":
+            # Prep for text
+            if self.co1or == 0:
+                fill(255)
+            else:
+                fill(0)
+            if type(self.buttonDetail) == str:
+                textFont(font1)
+                textSize(self.tSize)
+                text(self.buttonDetail, self.textX, self.textY)     
 
     def buttonFunction(self): 
-        saveFrame()
         if self.buttonF != "temp":
             self.buttonF()
             
@@ -561,8 +576,20 @@ class page(object):
         if self.pageDetails != "temp":
             self.pageDetails()
         for b in self.pageButtons: b.drawButton()
-    
+                
 
+class command():
+    def __init__(self, comm, function, funcArg):
+        self.comm = comm
+        self.function = function
+        self.funcArg = funcArg
+    
+    def commandFunction(self):
+        if funcArg == "":
+            self.function()
+        else:
+            self.function(funcArg)
+    
 # Misc functions
 def activatePage(p1):
     for p in pages:
@@ -586,8 +613,7 @@ def draw():
     if playP.isActive:
         playP.drawPage()
         for p in players:
-            p.displayPlayerData()
-            for t in p.tanks:
+            for t in clientTanks:
                 t.drawEntity()
             players[playerTurnIndex].drawFiringLine()
                 
@@ -601,31 +627,39 @@ def mousePressed():
 
 def mouseDragged():
     pass
-    
+        
 def keyPressed():
+    if enableTB():
+        return 0
+    runTB()
+        
+# Functions... All of them:
+def enableTB():
     if key == ENTER and len(activeTBs) == 0:
         for TB in textButtons:
             print("test")
             if TB.pageName == getActivePage().pageTag:
                 print("test2")
                 TB.buttonFunction()
-        return 0
+        return True
+    
+def runCommand(comm):
+    playerQueue.strs.append("[Game] That is not an existing command. Try /help")
+    
+def runTB():
     for i in activeTBs:
         if key == ENTER:
-            i.chatBox.strs.append(i.buttonDetail[3:])
+            i.chatBox.addStr(i.buttonDetail[3:])
+            if i.buttonDetail[3:4] == '/':
+                runCommand(i.buttonDetail[3:])
             i.buttonDetail = "tb."
             i.isSelected = False
-            activeTBs.remove(i)
             i.drawPage()
-        elif key == CODED:
+            activeTBs.remove(i)
+        elif (key == BACKSPACE or key == DELETE) and len(i.buttonDetail) >3:
+            i.buttonDetail = i.buttonDetail[0:len(i.buttonDetail)-1]
+        elif key == CODED or key == BACKSPACE or key ==TAB or key == ENTER or key == RETURN or key == ESC or key == DELETE:
             pass
         else:
             i.buttonDetail = i.buttonDetail + str(key)
-        
         i.drawButton()
-    
-        
-        
-# Functions... All of them:
-
-    
