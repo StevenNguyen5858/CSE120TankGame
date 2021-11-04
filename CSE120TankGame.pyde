@@ -239,6 +239,7 @@ def setupVariables():
     global fireB
     global playScreenButtons
     global fireBar
+    global angleBar
     angleBar = valueBar(8*s, 27.5*s, 12*s, " FireAngle", 100, 50)
     fireBar = valueBar(8*s, 30.5*s, 12*s, "FirePower", 100, 50)
     fireB = button(192,255, "fire.b", s, 29*s, 5*s, 2*s, functionFire, "Fire!!")
@@ -280,7 +281,7 @@ def setupVariables():
 # Group_3------------------------------------------------------------------Group_3
 # Button functions to be passed as button arguments/members
 def functionPlay():
-    if players != None and len(s) > 0:
+    if players != None and len(players) > 0:
         tankAssignment()
         activatePage(playP)
         print("Activiating play page")
@@ -297,8 +298,9 @@ def functionExit():
     
 def functionFire():
     textSize(100)
-    handleTurns()
     print("Firing projectile") 
+    print("FirePower: ", fireBar.value)
+    print("FireAngle: ", angleBar.value)
     
 def functionReturn():
     activatePage(mainP)
@@ -326,18 +328,7 @@ def tankAssignment():
 
 
 def handleTurns():
-    global playerTurnIndex
-    p = players[playerTurnIndex]
-    if p.tankTurnIndex<len(p.tanks)-1:
-        p.tankTurnIndex = p.tankTurnIndex + 1
-        p.activeTank = p.tanks[p.tankTurnIndex].tankName
-    else:
-        p.tankTurnIndex = 0
-        p.activeTank = p.tanks[p.tankTurnIndex].tankName
-        if playerTurnIndex<len(players)-1:
-            playerTurnIndex = playerTurnIndex + 1
-        else:
-            playerTurnIndex = 0
+    pass
        
        
        
