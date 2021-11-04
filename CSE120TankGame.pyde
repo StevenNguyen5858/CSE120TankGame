@@ -1,4 +1,4 @@
-# Group_1------------------------------------------------------------------
+# Group_1------------------------------------------------------------------Group_1
 # Setup Variablest
 scale_ = .8
 sW = 0
@@ -38,13 +38,12 @@ tank2 = None
 tank3 = None
 tank4 = None
 clientTanks = None
+entities = None
 tankTurnIndex = 0
 
 # Players
 player1 = None
 player2 = None
-player3 = None
-player4 = None
 players = None
 
 # Teams
@@ -62,6 +61,8 @@ exitB = None
 mainScreenButtons = None
 returnB = None
 optionScreenButtons = None
+angleBar = None
+fireBar = None
 
 # Global textButtons
 chatBT = None
@@ -78,7 +79,10 @@ pages = None
 # Misc
 playerTurnIndex = 0
 
-# Group_2------------------------------------------------------------------
+# Command values
+maxTanks = 2
+
+# Group_2------------------------------------------------------------------Group_2
 def settings():
     global sW
     global sH
@@ -167,10 +171,17 @@ def setup():
     
     # Draw right player bar
     playG.fill(0,180)
-    playG.quad(21.5*s, 2.5*s, 21.5*s, .5*s, 15*s, .5*s, 13*s, 2.5*s)
+    playG.quad(56.5*s, 2.5*s, 56.5*s, .5*s, 50*s, .5*s, 48*s, 2.5*s)
     playG.noFill()
-    playG.line(15.5*s, .5*s, 13.5*s, 2.5*s)
-    playG.line(16*s, .5*s, 16*s, 2.5*s)
+    playG.line(50.5*s, .5*s, 48.5*s, 2.5*s)
+    playG.line(51*s, .5*s, 51*s, 2.5*s)
+    # Draw left player bar
+    playG.fill(0,180)
+    playG.quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
+    playG.noFill()
+    playG.line(6*s,.5*s,6*s,2.5*s)
+    playG.line(6.5*s,2.5*s,8.5*s,.5*s)
+
     playG.endDraw()
     
     global optionsG
@@ -183,6 +194,7 @@ def setup():
     optionsG.endDraw()
 
     setupVariables()
+    activatePage(mainP)
        
 
 def setupVariables():
@@ -193,17 +205,19 @@ def setupVariables():
     
     # Players
     global player1
+    global player2
     global players
-    player1 = player("Player1",1,False)
-    players = [player1]
+    player1 = player("Player1", [], False)
+    player2 = player("Player2", [], False)
+    players = [player1, player2]
     
     # Teams
     global team1
     global team2
     global team3
     global teams
-    team1 = team("Team1", left, [])
-    team2 = team("Team2", right, [])
+    team1 = team("Team1", left, [player1])
+    team2 = team("Team2", right, [player2])
     team3 = team("Team3", left, players)
     
     # Tanks
@@ -212,18 +226,23 @@ def setupVariables():
     global tank3
     global tank4
     global clientTanks
+    global entities
     tank1 = tank(1.5*s, 23*s+.73*s, .5*s, .27*s, 0, left, "T1", 101, 102)
     tank2 = tank(3.5*s, 23*s+.73*s, .5*s, .27*s, 0, left, "T2", 101, 102)
     tank3 = tank(s*20.5, 23*s+.73*s, .5*s, .27*s, 0, left, "T3", 101, 102)
     tank4 = tank(s*18.5, 23*s+.73*s, .5*s, .27*s, 0, left, "T4", 101, 102)
     clientTanks = [tank1, tank2, tank3, tank4]
+    entities = []
     
     # Buttons
     global textButtons
     global fireB
     global playScreenButtons
+    global fireBar
+    angleBar = valueBar(8*s, 27.5*s, 12*s, " FireAngle", 100, 50)
+    fireBar = valueBar(8*s, 30.5*s, 12*s, "FirePower", 100, 50)
     fireB = button(192,255, "fire.b", s, 29*s, 5*s, 2*s, functionFire, "Fire!!")
-    playScreenButtons = [fireB]
+    playScreenButtons = [fireB, fireBar, angleBar]
     global playB
     global optionsB
     global exitB
@@ -246,6 +265,7 @@ def setupVariables():
     global activeTBs
     activeTBs = set()
     
+    
     # Pages
     global playP
     global mainP
@@ -257,10 +277,11 @@ def setupVariables():
     global pages
     pages = [mainP, playP, optionsP]
     
-# Group_3------------------------------------------------------------------
+# Group_3------------------------------------------------------------------Group_3
 # Button functions to be passed as button arguments/members
 def functionPlay():
-    if players != None and len(players) > 0:
+    if players != None and len(s) > 0:
+        tankAssignment()
         activatePage(playP)
         print("Activiating play page")
     else:
@@ -283,8 +304,27 @@ def functionReturn():
     activatePage(mainP)
     print("Returning to main")
     
-# -----------------------------------------------------------------Group_3.1
+# Group_3.1-----------------------------------------------------------------Group_3.1
 # Misc Functions
+def tankAssignment():
+    if maxTanks == 4:
+        if team1.players.size() > 1:
+            team1.players[0].tankNums.append(1)
+            team1.players[1].tankNums.append(2)
+        elif team1.players.size() == 1:
+            team1.players[0].tankNums.extend([1,2])
+        if team2.players.size() > 1:
+            team2.players[0].tankNums.append(3)
+            team2.players[1].tankNums.append(3)
+        elif team2.players.size() == 1:
+            team2.players[0].tankNums.extend([3,4])
+        entities.extend([tank1, tank2, tank3, tank4])
+    else:
+        team1.players[0].tankNums.append(1)
+        team2.players[0].tankNums.append(4)
+        entities.extend([tank1, tank4])
+
+
 def handleTurns():
     global playerTurnIndex
     p = players[playerTurnIndex]
@@ -299,7 +339,9 @@ def handleTurns():
         else:
             playerTurnIndex = 0
        
-# ------------------------------------------------------------------Group_3.2
+       
+       
+# Group_3.2------------------------------------------------------------------Group_3.2
 # commands
 def changeName(name):
     pass
@@ -310,7 +352,7 @@ def joinServer():
 def swapWith(name):
     pass
 
-# ------------------------------------------------------------------Group_3.3
+# Group_3.3------------------------------------------------------------------Group_3.3
 # Detail Functions:
 def detailMain():
     displayQueueData()
@@ -327,26 +369,13 @@ def displayQueueData():
     text(team2.teamName, 45.75*s, 6.25*s-((s*1-textAscent())/2)-s*.2)
     for i in range(len(team2.players)):
         if team2.players[i] != None:
-            text("- "+team2.players[i].playerName, 39.75*s, 7.25*s+i*s-((s*1-textAscent())/2)-s*.2)
+            text("- "+team2.players[i].playerName, 45.75*s, 7.25*s+i*s-((s*1-textAscent())/2)-s*.2)
     for i in range(len(team3.players)):
         if team3.players[i] != None:
             text("- "+team3.players[i].playerName, 52.5*s, 6.25*s+i*s-((s*1-textAscent())/2)-s*.2)
     
-def leftBarDetail():
-    pushMatrix()
-    # Draw left player bar
-    fill(0,180)
-    quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
-    noFill()
-    line(6*s,.5*s,6*s,2.5*s)
-    line(6.5*s,2.5*s,8.5*s,.5*s)
-    popMatrix()
-    
-    
-def rightBarDetail():
-    pass
-    
-# ------------------------------------------------------------------Group_4
+
+# Group_4------------------------------------------------------------------Group_4
 # Classes... All of them:
 class entity(object):
     vx = 0 
@@ -360,9 +389,6 @@ class entity(object):
         self.voy = voy
         self.vx = vox
         self.vy = voy
-    
-    def updatePos(self):
-        pass
     
     def drawEntity(self):
         fill(0)
@@ -409,7 +435,7 @@ class tank(entity):
         rectMode(CORNER)
         
         
-# Group_5------------------------------------------------------------------
+# Group_5------------------------------------------------------------------Group_5
 class chatBox(object):
     def __init__(self, x, y, w, lines, fromTop, strs, displayIndex):
         self.x = x
@@ -438,8 +464,42 @@ class chatBox(object):
                 text(self.strs[lenStr-i-1], self.x+.5*s, (self.y+self.h-i*s)-((s*1-textAscent())/2)-s*.2)
         else:
             rect(self.x, self.y+h, self.w, -self.h)
-            
-# ------------------------------------------------------------------Group_6
+         
+ 
+class valueBar(object):
+    def __init__(self, x, y, w, name, valueMax, value):
+        self.x = x
+        self.y = y-.5*s
+        self.w = w
+        self.name = name
+        self.valueMax = valueMax
+        self.value = value
+        self.transX = textWidth(self.name)+ 2*s
+    
+    def hitCheck(self):
+        if (self.x+self.transX < mouseX < self.x+self.transX+self.w) and (self.y-.5*s < mouseY < self.y++.5*s):
+            x0 = self.x+self.transX
+            x1 = self.x+self.transX+self.w
+            xvalue = mouseX - x0
+            self.value = int((xvalue/self.w)*self.valueMax)
+            playP.drawPage()
+            print(self.name, "equals", self.value)
+         
+    def drawButton(self):
+        stroke(255)
+        fill(255)
+        strokeWeight(10)
+        textSize(2*s*.740)
+        text(self.name + ": ", self.x, self.y+.5*s)
+        
+        line(self.x+self.transX, self.y, self.x+self.transX+self.w, self.y)
+        strokeWeight(20)
+        transValue = (float(self.value)/float(self.valueMax)*self.w)
+        line(self.x+self.transX+transValue, self.y-.5*s, self.x+self.transX+transValue, self.y+.5*s)
+        
+        
+        
+# Group_6------------------------------------------------------------------Group_6
 class player(object):
     aimX = 0
     aimY = 0
@@ -467,7 +527,7 @@ class team(object):
         self.players = players
         
         
-# ------------------------------------------------------------------Group_7
+# Group_7------------------------------------------------------------------Group_7
 class button(object):
     def __init__(self, co1or, strok3, name, x, y, w, h, buttonF, buttonDetail):
         self.co1or = co1or
@@ -595,6 +655,9 @@ def activatePage(p1):
     for p in pages:
         if p1.pageTag != p.pageTag:
             p.isActive = False
+    image(boxGrid, 0, 0)
+    p1.drawPage()
+    p1.isActive = True
     p1.drawOnce = True
     
 def getActivePage():
@@ -602,19 +665,13 @@ def getActivePage():
         if p.isActive:
             return p
         
-# ------------------------------------------------------------------Group_8
+# Group_8------------------------------------------------------------------Group_8
 def draw():
-    for p in pages: 
-        if p.drawOnce:
-            image(boxGrid, 0, 0)
-            p.drawPage()
-            p.isActive = True
-            p.drawOnce = False
     if playP.isActive:
         playP.drawPage()
         for p in players:
-            for t in clientTanks:
-                t.drawEntity()
+            for e in entities:
+                e.drawEntity()
             players[playerTurnIndex].drawFiringLine()
                 
      
