@@ -89,8 +89,8 @@ def settings():
     global s
     # sW = int((displayHeight*scale_)/32*0.7)*32
     # sH = int((displayHeight*scale_)/32)*32  
-    sW = int((3840*scale_)/32)*32
-    sH = int((3840*scale_)/32*.5625)*32
+    sW = int((1920*scale_)/32)*32
+    sH = int((1920*scale_)/32*.5625)*32
     size(sW, sH)
     s = int(sH/32)
     
@@ -240,8 +240,8 @@ def setupVariables():
     global playScreenButtons
     global fireBar
     global angleBar
-    angleBar = valueBar(8*s, 27.5*s, 12*s, " FireAngle", 100, 50)
-    fireBar = valueBar(8*s, 30.5*s, 12*s, "FirePower", 100, 50)
+    angleBar = valueBar(8*s, 27.5*s, 10*s, " FireAngle", 79, 34, 50)
+    fireBar = valueBar(8*s, 30.5*s, 10*s, "FirePower", 100, 0, 50)
     fireB = button(192,255, "fire.b", s, 29*s, 5*s, 2*s, functionFire, "Fire!!")
     playScreenButtons = [fireB, fireBar, angleBar]
     global playB
@@ -413,7 +413,7 @@ class tank(entity):
         self.tankName = tankName
         self.health = 2
         self.isTurn = False
-        self.fireAngle = 1.57
+        self.fireAngle = 2
         self.power = 7 
         self.doDrawLine = False
         
@@ -458,15 +458,24 @@ class chatBox(object):
          
  
 class valueBar(object):
-    def __init__(self, x, y, w, name, valueMax, value):
+    def __init__(self, x, y, w, name, valueMax, valueMin, value):
         self.x = x
-        self.y = y-.5*s
+        self.y = y-.3*s
         self.w = w
         self.name = name
         self.valueMax = valueMax
+        self.valueMin = valueMin
         self.value = value
         self.transX = textWidth(self.name)+ 2*s
-    
+        
+    def incrementOne(self):
+        if self.value < self.valueMax:
+            self.value = self.value + 1
+        
+    def incrementDownOne(self):
+        if self.value > self.valueMin:
+            self.value = self.value - 1
+            
     def hitCheck(self):
         if (self.x+self.transX < mouseX < self.x+self.transX+self.w) and (self.y-.5*s < mouseY < self.y++.5*s):
             x0 = self.x+self.transX
@@ -485,7 +494,7 @@ class valueBar(object):
         
         line(self.x+self.transX, self.y, self.x+self.transX+self.w, self.y)
         strokeWeight(20)
-        transValue = (float(self.value)/float(self.valueMax)*self.w)
+        transValue = ((float(self.value)-float(self.valueMin))/(float(self.valueMax)-float(self.valueMin))*self.w)
         line(self.x+self.transX+transValue, self.y-.5*s, self.x+self.transX+transValue, self.y+.5*s)
         
         
@@ -504,10 +513,10 @@ class player(object):
         t = clientTanks[tankTurnIndex]
         x1 = t.x
         y1 = t.y - s*.5
-        x2 = (t.power*s)*cos(t.fireAngle)
-        y2 = (t.power*s)*sin(t.fireAngle)
+        x2 = cos(angleBar.value / 12.0) * (fireBar.value + 2.5*s)
+        y2 = sin(angleBar.value / 12.0) * (fireBar.value + 2.5*s)
         fill(255)
-        line(x1,y1,x1+x2,y1-y2)
+        line(x1,y1,x1+x2,y2+y1)
         strokeWeight(1)
     
         
@@ -664,8 +673,7 @@ def draw():
             for e in entities:
                 e.drawEntity()
             players[playerTurnIndex].drawFiringLine()
-                
-     
+                                                        
 def mousePressed():
     print("X: ", mouseX/s, "Y: ", mouseY/s)
     for p in pages:
@@ -680,7 +688,15 @@ def keyPressed():
     if enableTB():
         return 0
     runTB()
-        
+    if keyCode == UP:
+        fireBar.incrementOne()
+    if keyCode == DOWN:
+        fireBar.incrementDownOne()
+    if keyCode == LEFT:
+        angleBar.incrementDownOne()
+    if keyCode == RIGHT:
+        angleBar.incrementOne()
+    
 # Functions... All of them:
 def enableTB():
     if key == ENTER and len(activeTBs) == 0:
