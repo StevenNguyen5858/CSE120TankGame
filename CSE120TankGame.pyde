@@ -297,10 +297,14 @@ def functionExit():
     print("Exit program executed")
     
 def functionFire():
+    t = clientTanks[tankTurnIndex]
+    tempProjectile = projectile(t.x, t.y-s, .25*s, .25*s, 8*s, 8*s, 0, 0)
+    entities.append(tempProjectile)
     textSize(100)
     print("Firing projectile") 
     print("FirePower: ", fireBar.value)
     print("FireAngle: ", angleBar.value)
+
     
 def functionReturn():
     activatePage(mainP)
@@ -426,6 +430,38 @@ class tank(entity):
         rectMode(CORNER)
         
         
+class projectile(entity):
+    timeElapsed = 0 
+    def __init__(self, x, y, w, h, vox, voy, v, angle):
+        entity.__init__(self, x, y, w, h, vox, voy)
+        self.x0 = x
+        self.y0 = y
+        self.ax = 0
+        self.ay = -9.8 * s
+        self.timeStart = millis()
+        self.vx = vox
+        self.vy = voy
+        w = s
+        h = s
+        
+    def updatePos(self):
+        avx = (self.vx + self.vox) / 2
+        t = (float(millis() - self.timeStart)) / 1000.00
+        dx = avx * t
+        self.x = self.x0 + dx
+        
+        dy = (self.vy * t) + 0.5 * self.ay * (t*t)
+        self.y = self.y0 - dy
+        
+    def drawEntity(self):
+        self.updatePos()
+        rectMode(RADIUS)
+        rect(self.x, self.y, self.w, self.h)
+        rectMode(CORNER)
+
+            
+        
+        
 # Group_5------------------------------------------------------------------Group_5
 class chatBox(object):
     def __init__(self, x, y, w, lines, fromTop, strs, displayIndex):
@@ -465,6 +501,7 @@ class valueBar(object):
         self.name = name
         self.valueMax = valueMax
         self.valueMin = valueMin
+        self.valueRange = self.valueMax-self.valueMin
         self.value = value
         self.transX = textWidth(self.name)+ 2*s
         
@@ -481,7 +518,7 @@ class valueBar(object):
             x0 = self.x+self.transX
             x1 = self.x+self.transX+self.w
             xvalue = mouseX - x0
-            self.value = int((xvalue/self.w)*self.valueMax)
+            self.value = int((xvalue/self.w))*(self.valueMax-self.valueMin)
             playP.drawPage()
             print(self.name, "equals", self.value)
          
@@ -494,7 +531,7 @@ class valueBar(object):
         
         line(self.x+self.transX, self.y, self.x+self.transX+self.w, self.y)
         strokeWeight(20)
-        transValue = ((float(self.value)-float(self.valueMin))/(float(self.valueMax)-float(self.valueMin))*self.w)
+        transValue = (self.value/self.valueRange)*self.w
         line(self.x+self.transX+transValue, self.y-.5*s, self.x+self.transX+transValue, self.y+.5*s)
         
         
