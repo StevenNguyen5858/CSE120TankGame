@@ -298,7 +298,9 @@ def functionExit():
     
 def functionFire():
     t = clientTanks[tankTurnIndex]
-    tempProjectile = projectile(t.x, t.y-s, .25*s, .25*s, 8*s, 8*s, 0, 0)
+    vx = 20*s*fireBar.valueRatio*cos(angleBar.valueRatio*3.141592653589793)
+    vy = 20*s*fireBar.valueRatio*sin(angleBar.valueRatio*3.141592653589793)
+    tempProjectile = projectile(t.x, t.y-s, .25*s, .25*s, -vx, vy, 0, 0)
     entities.append(tempProjectile)
     textSize(100)
     print("Firing projectile") 
@@ -499,28 +501,32 @@ class valueBar(object):
         self.y = y-.3*s
         self.w = w
         self.name = name
+        self.value = value
         self.valueMax = valueMax
         self.valueMin = valueMin
         self.valueRange = self.valueMax-self.valueMin
-        self.value = value
+        self.valueRatio = float(self.value-self.valueMin)/float(self.valueRange)
         self.transX = textWidth(self.name)+ 2*s
         
     def incrementOne(self):
         if self.value < self.valueMax:
             self.value = self.value + 1
+            self.valueRatio = (float(self.value)-float(self.valueMin))/float(self.valueRange)
         
     def incrementDownOne(self):
         if self.value > self.valueMin:
             self.value = self.value - 1
+            self.valueRatio = (float(self.value)-float(self.valueMin))/float(self.valueRange)
             
     def hitCheck(self):
         if (self.x+self.transX < mouseX < self.x+self.transX+self.w) and (self.y-.5*s < mouseY < self.y++.5*s):
             x0 = self.x+self.transX
             x1 = self.x+self.transX+self.w
             xvalue = mouseX - x0
-            self.value = int((xvalue/self.w))*(self.valueMax-self.valueMin)
+            self.value = int(((mouseX-x0)/(self.w))*(self.valueRange)+self.valueMin)
+            self.valueRatio = (float(self.value)-float(self.valueMin))/float(self.valueRange)
             playP.drawPage()
-            print(self.name, "equals", self.value)
+            print(self.name, "equals", self.value, "ratio", self.valueRatio)
          
     def drawButton(self):
         stroke(255)
@@ -531,7 +537,7 @@ class valueBar(object):
         
         line(self.x+self.transX, self.y, self.x+self.transX+self.w, self.y)
         strokeWeight(20)
-        transValue = (self.value/self.valueRange)*self.w
+        transValue = ((float(self.value)-float(self.valueMin))/(self.valueRange)*self.w)
         line(self.x+self.transX+transValue, self.y-.5*s, self.x+self.transX+transValue, self.y+.5*s)
         
         
@@ -550,10 +556,11 @@ class player(object):
         t = clientTanks[tankTurnIndex]
         x1 = t.x
         y1 = t.y - s*.5
-        x2 = cos(angleBar.value / 12.0) * (fireBar.value + 2.5*s)
-        y2 = sin(angleBar.value / 12.0) * (fireBar.value + 2.5*s)
+        
+        x2 = 5*s*fireBar.valueRatio*cos(angleBar.valueRatio*3.141592653589793)
+        y2 = 5*s*fireBar.valueRatio*sin(angleBar.valueRatio*3.141592653589793)
         fill(255)
-        line(x1,y1,x1+x2,y2+y1)
+        line(x1,y1,x1-x2,y1-y2)
         strokeWeight(1)
     
         
