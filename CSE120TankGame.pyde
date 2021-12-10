@@ -54,12 +54,18 @@ teams = None
 
 # Global buttons
 fireB = None
+burst1B = None
+burst3B = None
+burst5B = None
 playScreenButtons = None
 playB = None
 optionsB = None
 exitB = None
 mainScreenButtons = None
 returnB = None
+limiting_ammoB = None
+moving_playerB = None
+random_targetB = None
 optionScreenButtons = None
 angleBar = None
 fireBar = None
@@ -89,8 +95,8 @@ def settings():
     global s
     # sW = int((displayHeight*scale_)/32*0.7)*32
     # sH = int((displayHeight*scale_)/32)*32  
-    sW = int((1920*scale_)/32)*32
-    sH = int((1920*scale_)/32*.5625)*32
+    sW = int((3840*scale_)/32)*32
+    sH = int((3840*scale_)/32*.5625)*32
     size(sW, sH)
     s = int(sH/32)
     
@@ -154,8 +160,8 @@ def setup():
     main.rect(0,int(sH*.75),sW,sH)
     main.stroke(255)
     main.fill(0)
-    main.quad(0,sH*.75,34*s,sH*.75,30*s,sH,0,sH)
-    main.quad(57*s,sH*.75,35*s,sH*.75,31*s,sH,sW,sH)
+    main.quad(0,sH*.75,19*s,sH*.75,15*s,sH,0,sH)
+    main.quad(57*s,sH*.75,20*s,sH*.75,16*s,sH,sW,sH)
     main.endDraw()
     
     global playG
@@ -163,18 +169,21 @@ def setup():
     playG.beginDraw()
     playG.background(192, 64, 0)
     playG.image(boxGrid, 0, 0)
-    playG.fill(0)
-    playG.stroke(0)
+    playG.noStroke()
+    playG.fill(180,100)
     playG.rect(0,int(sH*.75),sW,sH)
     playG.stroke(255)
-    playG.line(0,int(sH*.75),sW,int(sH*.75))
+    playG.fill(0)
+    # playG.quad(0,sH*.75,19*s,sH*.75,15*s,sH,0,sH)
+    playG.quad(57*s,sH*.75,20*s,sH*.75,16*s,sH,sW,sH)
+    playG.endDraw()
     
     # Draw right player bar
-    playG.fill(0,180)
-    playG.quad(56.5*s, 2.5*s, 56.5*s, .5*s, 50*s, .5*s, 48*s, 2.5*s)
-    playG.noFill()
-    playG.line(50.5*s, .5*s, 48.5*s, 2.5*s)
-    playG.line(51*s, .5*s, 51*s, 2.5*s)
+    # playG.fill(0,180)
+    # playG.quad(56.5*s, 2.5*s, 56.5*s, .5*s, 50*s, .5*s, 48*s, 2.5*s)
+    # playG.noFill()
+    # playG.line(50.5*s, .5*s, 48.5*s, 2.5*s)
+    # playG.line(51*s, .5*s, 51*s, 2.5*s)
     # Draw left player bar
     playG.fill(0,180)
     playG.quad(.5*s, 2.5*s, .5*s, .5*s, 9*s, .5*s, 7*s, 2.5*s)
@@ -240,10 +249,16 @@ def setupVariables():
     global playScreenButtons
     global fireBar
     global angleBar
-    angleBar = valueBar(8*s, 27.5*s, 10*s, " FireAngle", 79, 34, 50)
-    fireBar = valueBar(8*s, 30.5*s, 10*s, "FirePower", 100, 0, 50)
-    fireB = button(192,255, "fire.b", s, 29*s, 5*s, 2*s, functionFire, "Fire!!")
-    playScreenButtons = [fireB, fireBar, angleBar]
+    global burst1B
+    global burst3B
+    global burst5B
+    angleBar = valueBar(19.5*s, 27.5*s, 10*s, " FireAngle", 79, 34, 50)
+    fireBar = valueBar(19.5*s, 29.5*s, 10*s, "FirePower", 100, 0, 50)
+    fireB = button(0,255, "fire.b", s, 27*s, 5*s, 2*s, functionFire, "Fire!!")
+    burst1B = button(192, 255, "burst1B.b", 42*s, 27*s, 2*s, 2*s, "temp", "")
+    burst3B = button(192, 255, "burst1B.b", 47*s, 27*s, 2*s, 2*s, "temp", "")
+    burst5B = button(192, 255, "burst1B.b", 52*s, 27*s, 2*s, 2*s, "temp", "")
+    playScreenButtons = [fireB, fireBar, burst1B, burst3B, burst5B, angleBar]
     global playB
     global optionsB
     global exitB
@@ -260,8 +275,11 @@ def setupVariables():
     mainScreenButtons = [playB, optionsB, exitB, leftScrollBT, rightScrollBT, chatBT]
     global optionScreenButtons
     returnB = button(0, 255, "return.b", 2*s, 25*s, 5*s, 2*s, functionReturn, "Back")
+    limiting_ammoB = button(0, 255, "return.b", 2*s, 10*s, 5*s, 2*s, "temp", "")
+    moving_playerB = button(0, 255, "return.b", 2*s, 6*s, 5*s, 2*s, "temp", "")
+    random_targetB = button(0, 255, "return.b", 2*s, 2*s, 5*s, 2*s, "temp", "")
     exitB = button(0, 255, "exit.b", 2*s, 25*s, 5*s, 2*s, functionExit, "Exit")
-    optionScreenButtons = [returnB]
+    optionScreenButtons = [limiting_ammoB, moving_playerB, random_targetB, returnB]
     textButtons = [chatBT]
     global activeTBs
     activeTBs = set()
@@ -331,7 +349,6 @@ def tankAssignment():
         team1.players[0].tankNums.append(1)
         team2.players[0].tankNums.append(4)
         entities.extend([tank1, tank4])
-
 
 def handleTurns():
     pass
@@ -449,10 +466,10 @@ class projectile(entity):
     def updatePos(self):
         avx = (self.vx + self.vox) / 2
         t = (float(millis() - self.timeStart)) / 1000.00
-        dx = avx * t
-        self.x = self.x0 + dx
+        dx = float(avx) * float(t)
+        self.x = self.x0 + float(dx)
         
-        dy = (self.vy * t) + 0.5 * self.ay * (t*t)
+        dy = float(self.vy * t) + float(0.5) * float(self.ay) * float(t*t)
         self.y = self.y0 - dy
         
     def drawEntity(self):
@@ -510,12 +527,12 @@ class valueBar(object):
         
     def incrementOne(self):
         if self.value < self.valueMax:
-            self.value = self.value + 1
+            self.value = self.value + .5
             self.valueRatio = (float(self.value)-float(self.valueMin))/float(self.valueRange)
         
     def incrementDownOne(self):
         if self.value > self.valueMin:
-            self.value = self.value - 1
+            self.value = self.value - .5
             self.valueRatio = (float(self.value)-float(self.valueMin))/float(self.valueRange)
             
     def hitCheck(self):
@@ -602,6 +619,7 @@ class button(object):
                 # detail red
                 fill(192,64,0, 100)
             stroke(self.strok3)
+            strokeWeight(2)
             rect(self.x-self.dT,self.y-self.dT,self.w+self.dT*2,self.h+self.dT*2)
         
         if self.co1or == 0:
@@ -740,6 +758,8 @@ def keyPressed():
         angleBar.incrementDownOne()
     if keyCode == RIGHT:
         angleBar.incrementOne()
+    if keyCode == 32:
+        functionFire()
     
 # Functions... All of them:
 def enableTB():
