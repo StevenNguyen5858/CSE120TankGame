@@ -88,8 +88,7 @@ playerTurnIndex = 0
 maxTanks = 2
 
 # Game settings
-gameModeChallenge = True
-GameRuleMoving = False
+gameModeChallenge = False
 gameScore = 0
 
 # Animation Booleans
@@ -279,14 +278,11 @@ def setup():
     
     global returnB
     global gameModeB
-    global gameRuleB
     global exitB
     global optionScreenButtons
-    
-    gameModeB = button(0, 255, "Game Mode  .n", 2*s, 10*s, 9*s, 2*s, functionMode, detailMode)
-    gameRuleB = button(0, 255, "Moving Tank.n", 2*s, 6*s, 9*s, 2*s, functionRule, detailRule)
+    gameModeB = button(0, 255, "Challenge  .n", 2*s, 10*s, 9*s, 2*s, functionMode, detailMode)
     returnB = button(0, 255, "Return.n", 2*s, 25*s, 5*s, 2*s, functionReturn, "Back")
-    optionScreenButtons = [gameModeB, gameRuleB, returnB]
+    optionScreenButtons = [gameModeB, returnB]
     
     textButtons = [chatBT]
     global activeTBs
@@ -308,16 +304,10 @@ def setup():
 # Group_3------------------------------------------------------------------Group_3
 # Functions.
 def tankAssignment():
-    entities.extend([tank1, tank4])
+    entities.extend([tank1, tank2])
+    
 def spawnRandomTank():
-    alreadyExist = True
-    while(alreadyExist == True):
-        randInt = random.randint(1, 3)
-        alreadyExist = True
-        for e in entities:
-            if e == clientTanks[randInt]:
-                alreadyExist = True
-                
+    randInt = random.randint(1, 3)
     entities.append(clientTanks[randInt])
     
     
@@ -331,15 +321,6 @@ def detailMode(x, y, w, h):
     textY = y+h-((h-textAscent())/2)-s*.1
     fill(255)
     text(str(gameModeChallenge), textX+w+2*s, textY)
-    
-def detailRule(x, y, w, h):
-    fill(0, 120)
-    stroke(255)
-    rect(x+w+2*s,y,4*s,h)
-    textX = (4*s-textWidth("False"))/2+x
-    textY = y+h-((h-textAscent())/2)-s*.1
-    fill(255)
-    text(str(GameRuleMoving), textX+w+2*s, textY)
     
 def detailRed(x, y, w, h):
     # Outter button box
@@ -388,11 +369,6 @@ def functionMode():
     gameModeChallenge = False if gameModeChallenge == True else True
     optionsP.drawPage()
     
-def functionRule():
-    global GameRuleMoving
-    GameRuleMoving = False if GameRuleMoving == True else True
-    optionsP.drawPage()
-    
 def functionPlay():
     if players != None and len(players) > 0:
         global gameScore
@@ -412,19 +388,18 @@ def functionExit():
     print("Exit program executed")
     
 def functionFire():
+    global fireLock
     if fireLock == False:
         fireBurst = 1
         t = clientTanks[tankTurnIndex]
-        
         vx = 20*s*fireBar.valueRatio*cos(angleBar.valueRatio*3.141592653589793)
         vy = 20*s*fireBar.valueRatio*sin(angleBar.valueRatio*3.141592653589793)
-        tempProjectile = projectile(t.x, t.y-s, .25*s, .25*s, -vx, vy, 0, 0)
+        tempProjectile = projectile(t.x, t.y-1.2*s, .25*s, .25*s, -vx, vy, 0, 0)
         entities.append(tempProjectile)
         textSize(100)
         print("Firing projectile") 
         print("FirePower: ", fireBar.value)
         print("FireAngle: ", angleBar.value)
-        global fireLock
         fireLock = True
 
 def functionReturn():
@@ -796,25 +771,7 @@ def getActivePage():
 # Group_8------------------------------------------------------------------Group_8
 def draw():
     if playP.isActive:
-        playP.drawPage()
-        text("Time: " + str(millis()/1000) + " Score: " + str(gameScore), (57*s/2)-textWidth("Time: " + str(millis()/1000) + "   Score: ")/2, 3*s)
-        if gameModeChallenge:
-            if millis()/1000 % 10 == 5 and animationSpawnOnce == False:
-                global animationSpawnOnce
-                animationSpawnOnce = True
-                spawnRandomTank()
-                if len(entities) > 3:
-                    functionPlay()
-            if millis()/1000 % 10 == 6:
-                animationSpawnOnce = False
-        if fireLock and fireLockTimer == 0:
-            global fireLockTimer
-            fireLockTimer = millis()
-        if fireLock and millis()/1000 >= fireLockTimer/1000 + 1:
-            global fireLock
-            fireLock = False
-            fireLockTimer = 0
-            
+        playP.drawPage()S
         for p in players:
             for e in entities:
                 e.drawEntity()
