@@ -389,6 +389,7 @@ def functionExit():
     
 def functionFire():
     global fireLock
+    global fireLockTimer
     if fireLock == False:
         fireBurst = 1
         t = clientTanks[tankTurnIndex]
@@ -401,6 +402,7 @@ def functionFire():
         print("FirePower: ", fireBar.value)
         print("FireAngle: ", angleBar.value)
         fireLock = True
+        fireLockTimer = millis()
 
 def functionReturn():
     activatePage(mainP)
@@ -771,11 +773,15 @@ def getActivePage():
 # Group_8------------------------------------------------------------------Group_8
 def draw():
     if playP.isActive:
-        playP.drawPage()S
+        playP.drawPage()
         for p in players:
             for e in entities:
                 e.drawEntity()
             players[playerTurnIndex].drawFiringLine()
+        global fireLock    
+        if fireLock and millis()-fireLockTimer > 1000:
+            fireLock = False
+            
                                                         
 def mousePressed():
     print("X: ", mouseX/s, "Y: ", mouseY/s)
